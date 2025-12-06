@@ -228,3 +228,6 @@ For more, see `HEALTH_CARD_SYSTEM_GUIDE.md` - Troubleshooting section.
 **Built with**: Flask, SQLite, HTML5/CSS3, JavaScript
 
 🏥 **Built for better healthcare delivery**
+<img width="1567" height="881" alt="medilink health card system " src="https://github.com/user-attachments/assets/3b7fad8f-ddc3-4a6c-864c-6af2cf06fcc6" />
+
+
