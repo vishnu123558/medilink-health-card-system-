@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MediLink Health Card System</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        /* COLOR SCHEME: Primary Blue (#1976d2) - used for headers, buttons, active states, and accents */
+        body { font-family: Arial, sans-serif; background: #f4f6fa; margin: 0; }
+        .container { max-width: 900px; margin: 30px auto; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px #0001; padding: 30px; }
+        
+        /* Poster - light blue background with dark blue text for awareness messaging */
+        .poster { background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #1976d2; }
+        .poster h2 { margin: 0 0 10px 0; color: #1976d2; font-weight: 700; }
+        
+        /* Module header - blue gradient banner for each section (Patient, Doctor, Admin) */
+        .module-header { background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(25, 118, 210, 0.2); }
+        .module-header h2 { margin: 0; font-size: 22px; font-weight: 700; }
+        .module-header p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.95; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #1976d2; box-shadow: 0 0 8px rgba(25, 118, 210, 0.2); }
+        
+        /* Primary button - bright blue with shadow and hover effect */
+        button { background: #1976d2; color: #fff; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(25, 118, 210, 0.2); }
+        button:hover { background: #1565c0; box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3); transform: translateY(-1px); }
+        
+        /* Secondary button - green for approve/secondary actions */
+        button.secondary { background: #4caf50; box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2); }
+        button.secondary:hover { background: #45a049; box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3); }
+        
+        /* Danger button - red for reject/delete actions */
+        button.danger { background: #f44336; box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2); }
+        button.danger:hover { background: #da190b; box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3); }
+        
+        /* Warning button - orange for cautionary/informational actions */
+        button.warning { background: #ff9800; box-shadow: 0 2px 4px rgba(255, 152, 0, 0.2); }
+        button.warning:hover { background: #e68900; box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3); }
+        
+        /* ====================================================
+           HEALTH CARD STYLING - Professional Medical Card Layout
+           ==================================================== */
+        
+        /* Main card container - mimics physical health card design */
+        .id-card { 
+            margin-top: 40px; 
+            padding: 30px; 
+            border: 2px solid #1976d2;
+            border-radius: 15px; 
+            background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%);
+            display: flex;
+            align-items: flex-start; 
+            gap: 40px;
+            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Decorative corner accent */
+        .id-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(25, 118, 210, 0.08) 0%, transparent 70%);
+            border-radius: 0 15px 0 100px;
+        }
+        
+        /* Card content container */
+        .id-info { 
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Card title */
+        .id-info h3 { 
+            margin: 0 0 20px 0; 
+            color: #1976d2; 
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Card sections with visual hierarchy */
+        .id-info strong { 
+            color: #1976d2;
+            display: inline-block;
+            font-weight: 700;
+            min-width: 140px;
+        }
+        
+        .id-info p {
+            margin: 8px 0;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        /* Section dividers */
+        .card-section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .card-section:last-child {
+            border-bottom: none;
+        }
+        
+        /* Health ID display - prominent styling */
+        .health-id-display {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
+        }
+        
+        .health-id-display .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.95;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .health-id-display .id-value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* Validity period section - green accent */
+        .validity-section {
+            background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .validity-section strong {
+            color: #2e7d32;
+        }
+        
+        /* QR code container */
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .qr-container label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* QR code styling */
+        #qrcode {
+            padding: 15px;
+            background: white;
+            border: 2px solid #1976d2;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #qrcode canvas {
+            display: block;
+        }
+        
+        /* Tab navigation - blue active state indicating selected module */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid #e0e0e0; }
+        .tab { padding: 12px 24px; cursor: pointer; background: #f5f5f5; border: none; border-radius: 8px 8px 0 0; font-size: 16px; font-weight: 600; color: #666; transition: all 0.3s ease; }
+        
+        /* Active tab - blue background with white text to show current module */
+        .tab.active { background: #1976d2; color: #fff; border-bottom: 3px solid #1565c0; }
+        
+        /* Tab hover effect - lighter blue to indicate interactivity */
+        .tab:hover { background: #1565c0; color: #fff; }
+        
+        /* Module visibility - only active module is displayed */
+        .module { display: none; }
+        .module.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Data table styling - blue header with sorted rows for admin/doctor modules */
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        
+        /* Table header - blue background for column titles */
+        .table th { background: #1976d2; color: #fff; font-weight: 600; }
+        
+        /* Table row hover - light blue highlight for better interactivity */
+        .table tr:hover { background: #e3f2fd; }
+        
+        .search-box { padding: 10px; width: 100%; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ddd; font-size: 14px; }
+        .search-box:focus { outline: none; border-color: #1976d2; box-shadow: 0 0 8px rgba(25, 118, 210, 0.2); }
+        
+        /* Stats grid - dashboard cards showing system statistics in admin module */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        
+        /* Stat card - light blue with bold blue numbers for metrics */
+        .stat-card { background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%); padding: 20px; border-radius: 10px; text-align: center; border-top: 4px solid #1976d2; box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1); }
+        .stat-card h3 { margin: 0; color: #1976d2; font-size: 32px; font-weight: 700; }
+        .stat-card p { margin: 5px 0 0 0; color: #666; font-size: 14px; }
+        
+        /* Status badge - color-coded labels for approval workflow states */
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+        /* Pending - yellow/orange badge (awaiting action) */
+        .status-pending { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+        /* Approved - green badge (verified/accepted) */
+        .status-approved { background: #d4edda; color: #155724; border: 1px solid #4caf50; }
+        /* Rejected - red badge (declined) */
+        .status-rejected { background: #f8d7da; color: #721c24; border: 1px solid #f44336; }
+        
+        /* Patient record card - blue left border accent for patient data display */
+        .patient-record { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #1976d2; transition: all 0.3s ease; }
+        .patient-record:hover { box-shadow: 0 4px 12px rgba(25, 118, 210, 0.1); }
+        .patient-record h4 { margin: 0 0 10px 0; color: #1976d2; }
+        .patient-record p { margin: 5px 0; color: #333; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: #1976d2; margin-bottom: 20px;">MediLink Health Card System</h1>
+        
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchModule('patient', this)">Patient Module</button>
+            <button class="tab" onclick="switchModule('doctor', this)">Doctor Module</button>
+            <button class="tab" onclick="switchModule('admin', this)">Admin Module</button>
+        </div>
+
+        <!-- Patient Module -->
+        <div id="patientModule" class="module active">
+            <!-- Patient Module Header - Blue gradient banner explaining module purpose -->
+            <div class="module-header">
+                <h2>👤 Patient Module</h2>
+                <p>Secure registration with OTP verification • Generate your unique Health ID card</p>
+            </div>
+            
+            <!-- Awareness Poster - Blue-themed informational banner -->
+            <div class="poster">
+                <h2>ℹ️ Free Registration & Health Awareness</h2>
+                <ul>
+                    <li>✅ Register for a free Health ID card at our hospital!</li>
+                    <li>✅ Our staff is here to help you understand your health better.</li>
+                    <li>✅ Ask about vaccinations, allergies, and disease management.</li>
+                    <li>✅ Your data is safe and helps us serve you better.</li>
+                </ul>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registrationForm">
+            <h2>Patient Registration</h2>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="age" min="0" required>
+            </div>
+            <div class="form-group">
+                <label>Gender</label>
+                <select id="gender" required>
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="countryCode" style="width: 150px; padding: 8px; border-radius: 5px; border: 1px solid #ccc;" required>
+                        <option value="+1">🇺🇸 +1 (USA)</option>
+                        <option value="+91" selected>🇮🇳 +91 (India)</option>
+                        <option value="+44">🇬🇧 +44 (UK)</option>
+                        <option value="+86">🇨🇳 +86 (China)</option>
+                        <option value="+81">🇯🇵 +81 (Japan)</option>
+                        <option value="+49">🇩🇪 +49 (Germany)</option>
+                        <option value="+33">🇫🇷 +33 (France)</option>
+                        <option value="+61">🇦🇺 +61 (Australia)</option>
+                        <option value="+971">🇦🇪 +971 (UAE)</option>
+                        <option value="+65">🇸🇬 +65 (Singapore)</option>
+                        <option value="+92">🇵🇰 +92 (Pakistan)</option>
+                        <option value="+880">🇧🇩 +880 (Bangladesh)</option>
+                        <option value="+94">🇱🇰 +94 (Sri Lanka)</option>
+                        <option value="+977">🇳🇵 +977 (Nepal)</option>
+                        <option value="+234">🇳🇬 +234 (Nigeria)</option>
+                        <option value="+27">🇿🇦 +27 (South Africa)</option>
+                        <option value="+55">🇧🇷 +55 (Brazil)</option>
+                        <option value="+52">🇲🇽 +52 (Mexico)</option>
+                        <option value="+7">🇷🇺 +7 (Russia)</option>
+                        <option value="+82">🇰🇷 +82 (South Korea)</option>
+                    </select>
+                    <input type="tel" id="mobile" pattern="[0-9]{10}" placeholder="10-digit number" style="flex: 1;" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Gmail Address</label>
+                <input type="email" id="email" placeholder="example@gmail.com" required>
+            </div>
+            <div class="form-group">
+                <label>Blood Group</label>
+                <input type="text" id="blood" required>
+            </div>
+            <div class="form-group">
+                <label>Allergies</label>
+                <input type="text" id="allergies" placeholder="e.g. Penicillin, Nuts">
+            </div>
+            <div class="form-group">
+                <label>Vaccinations</label>
+                <input type="text" id="vaccinations" placeholder="e.g. COVID-19, Hepatitis B">
+            </div>
+            <div class="form-group">
+                <label>Genetic History</label>
+                <textarea id="genetic" rows="2" placeholder="e.g. Diabetes, Hypertension"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Disease Control/Management</label>
+                <textarea id="disease" rows="2" placeholder="e.g. Asthma, Insulin therapy"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Fever Status</label>
+                <select id="fever" required>
+                    <option value="">Select Fever Type</option>
+                    <option value="None">None (Normal Temperature: 36.5-37.5°C / 97.7-99.5°F)</option>
+                    <option value="Low-grade">Low-grade Fever (37.6-38.0°C / 99.6-100.4°F)</option>
+                    <option value="Moderate">Moderate Fever (38.1-39.0°C / 100.5-102.2°F)</option>
+                    <option value="High">High Fever (39.1-40.0°C / 102.3-104.0°F)</option>
+                    <option value="Very High">Very High Fever (40.1-41.0°C / 104.1-105.8°F)</option>
+                    <option value="Hyperpyrexia">Hyperpyrexia (>41.0°C / >105.8°F)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Current Body Temperature (Optional)</label>
+                <input type="number" id="temperature" step="0.1" placeholder="e.g. 37.5" min="30" max="45">
+                <select id="tempUnit" style="width: 100px; margin-top: 5px;">
+                    <option value="C">°C (Celsius)</option>
+                    <option value="F">°F (Fahrenheit)</option>
+                </select>
+            </div>
+            <button type="submit">Register & Generate Health ID Card</button>
+        </form>
+
+        <div id="otpSection" style="display:none; margin-top:25px;">
+            <p id="otpInstructions" style="margin-bottom:10px;"></p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:220px;">
+                    <label style="font-weight:600;">Mobile OTP</label>
+                    <input type="text" id="otpInputMobile" placeholder="Enter mobile OTP" style="padding:10px; width:100%; border-radius:5px; border:1px solid #ccc; margin-bottom:10px;">
+                </div>
+            </div>
+            <button type="button" id="verifyOtpBtn">Verify Mobile OTP & Show Health Card</button>
+            <p id="otpHelp" style="font-size:12px; color:#666; margin-top:8px;">An OTP was sent to your mobile. Enter the OTP to complete registration and receive your Health ID card.</p>
+        </div>
+
+            <!-- Health ID Card (hidden by default) -->
+            <div id="idCard" class="id-card" style="display:none;">
+                <div class="id-info" id="idInfo"></div>
+                <div id="qrcode"></div>
+            </div>
+        </div>
+
+        <!-- Doctor Module -->
+        <div id="doctorModule" class="module">
+            <!-- Doctor Module Header - Blue gradient banner -->
+            <div class="module-header">
+                <h2>👨‍⚕️ Doctor Module</h2>
+                <p>Register as a medical professional • Access patient records securely • Manage approvals</p>
+            </div>
+            
+            <!-- Doctor Module Information Poster -->
+            <div class="poster">
+                <h2>🏥 Professional Healthcare Access</h2>
+                <p>Register as a doctor or login to access patient records and provide better healthcare services. All patient data is confidential and HIPAA-compliant.</p>
+            </div>
+
+            <!-- Doctor Registration Form -->
+            <div id="doctorRegistrationSection">
+                <h2>Doctor Registration</h2>
+                <form id="doctorRegistrationForm">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="doctorName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>License Number</label>
+                        <input type="text" id="doctorLicense" placeholder="Medical License Number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Specialization</label>
+                        <select id="doctorSpecialization" required>
+                            <option value="">Select Specialization</option>
+                            <option>Cardiology</option>
+                            <option>Pediatrics</option>
+                            <option>Orthopedics</option>
+                            <option>General Medicine</option>
+                            <option>Dermatology</option>
+                            <option>Neurology</option>
+                            <option>Oncology</option>
+                            <option>Psychiatry</option>
+                            <option>Emergency Medicine</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Years of Experience</label>
+                        <input type="number" id="doctorExperience" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="doctorMobile" pattern="[0-9]{10}" placeholder="10-digit number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="doctorEmail" placeholder="doctor@hospital.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hospital/Clinic Name</label>
+                        <input type="text" id="doctorHospital" required>
+                    </div>
+                    <button type="submit">Register as Doctor</button>
+                </form>
+            </div>
+
+            <!-- Patient Records Access Section -->
+            <div id="patientRecordsSection" style="display:none; margin-top: 30px;">
+                <h2>Access Patient Records</h2>
+                <div class="form-group">
+                    <label>Search by Health ID, Name, or Mobile</label>
+                    <input type="text" id="patientSearch" class="search-box" placeholder="Enter Health ID, Patient Name, or Mobile Number" onkeyup="searchPatients()">
+                </div>
+                <div id="patientRecordsResults"></div>
+            </div>
+
+            <!-- Doctor Login Section -->
+            <div id="doctorLoginSection" style="margin-top: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                <h3>Already Registered? Access Patient Records</h3>
+                <div class="form-group">
+                    <label>Doctor Email or License Number</label>
+                    <input type="text" id="doctorLoginId" placeholder="Enter your email or license number">
+                </div>
+                <button type="button" onclick="doctorLogin()">Login & Access Records</button>
+            </div>
+        </div>
+
+        <!-- Admin Module -->
+        <div id="adminModule" class="module">
+            <!-- Admin Module Header - Blue gradient banner -->
+            <div class="module-header">
+                <h2>⚙️ Admin Module</h2>
+                <p>System administration • User management • Doctor approvals • System monitoring</p>
+            </div>
+            
+            <!-- Admin Information Poster -->
+            <div class="poster">
+                <h2>🔐 System Administration Dashboard</h2>
+                <p>Manage users, approve doctor accounts, monitor system activity, and maintain platform security. Administrative access is restricted to authorized personnel only.</p>
+            </div>
+
+            <!-- Admin Login -->
+            <div id="adminLoginSection">
+                <h2>Admin Login</h2>
+                <div class="form-group">
+                    <label>Admin Username</label>
+                    <input type="text" id="adminUsername" placeholder="Enter admin username" required>
+                </div>
+                <div class="form-group">
+                    <label>Admin Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                </div>
+                <button type="button" onclick="adminLogin()">Login as Admin</button>
+                <p style="margin-top: 10px; color: #666; font-size: 12px;">Default: username: admin, password: admin123</p>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div id="adminDashboard" style="display:none;">
+                <!-- System Monitoring -->
+                <div>
+                    <h2>System Monitoring</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="statTotalPatients">0</h3>
+                            <p>Total Patients</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="statTotalDoctors">0</h3>
+                            <p>Total Doctors</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="statPendingDoctors">0</h3>
+                            <p>Pending Approvals</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="statApprovedDoctors">0</h3>
+                            <p>Approved Doctors</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="refreshSystemStats()">Refresh Statistics</button>
+                </div>
+
+                <!-- Manage Users Section -->
+                <div style="margin-top: 30px;">
+                    <h2>Manage Users</h2>
+                    <div class="form-group">
+                        <label>Search Users</label>
+                        <input type="text" id="userSearch" class="search-box" placeholder="Search by name, email, or ID" onkeyup="searchUsers()">
+                    </div>
+                    <div id="usersList"></div>
+                </div>
+
+                <!-- Approve Doctor Accounts -->
+                <div style="margin-top: 30px;">
+                    <h2>Approve Doctor Accounts</h2>
+                    <div id="doctorsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize storage
+        if (!localStorage.getItem('patients')) localStorage.setItem('patients', JSON.stringify([]));
+        if (!localStorage.getItem('doctors')) localStorage.setItem('doctors', JSON.stringify([]));
+        if (!localStorage.getItem('adminLoggedIn')) localStorage.setItem('adminLoggedIn', 'false');
+        
+        // Default admin credentials
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin123';
+
+        let currentPatient = null;
+        let currentDoctor = null;
+
+        // Module Navigation
+        function switchModule(moduleName, tabElement) {
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(moduleName + 'Module').classList.add('active');
+            tabElement.classList.add('active');
+            
+            if (moduleName === 'admin') {
+                refreshSystemStats();
+            }
+            if (moduleName === 'doctor') {
+                loadDoctorRecords();
+            }
+        }
+
+        function generatePatientId() {
+            const timestampPart = Date.now().toString();
+            const randomPart = Math.floor(Math.random() * 1_000_000).toString().padStart(6, '0');
+            return (timestampPart + randomPart).slice(0, 16);
+        }
+
+        function generateDoctorId() {
+            return 'DOC-' + Date.now().toString().slice(-10) + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        }
+
+        function generateOtp() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        function generateQrToken() {
+            return 'REQ-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+        }
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Storage Functions
+        function savePatient(patient) {
+            const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+            patients.push(patient);
+            localStorage.setItem('patients', JSON.stringify(patients));
+        }
+
+        function getPatients() {
+            return JSON.parse(localStorage.getItem('patients') || '[]');
+        }
+
+        function saveDoctor(doctor) {
+            const doctors = JSON.parse(localStorage.getItem('doctors') || '[]');
+            doctors.push(doctor);
+            localStorage.setItem('doctors', JSON.stringify(doctors));
+        }
+
+        function getDoctors() {
+            return JSON.parse(localStorage.getItem('doctors') || '[]');
+        }
+
+        function updateDoctor(doctorId, updates) {
+            const doctors = getDoctors();
+            const index = doctors.findIndex(d => d.doctorId === doctorId);
+            if (index !== -1) {
+                doctors[index] = { ...doctors[index], ...updates };
+                localStorage.setItem('doctors', JSON.stringify(doctors));
+            }
+        }
+
+        // =====================================================
+        // HEALTH CARD DISPLAY FUNCTION
+        // =====================================================
+        // Renders the final issued Health ID card with all patient details
+        // Displays: Personal info, medical history, unique Health ID, issue/renewal dates, QR code
+        // =====================================================
+        
+        function showHealthCard(patient) {
+            /**
+             * HEALTH CARD DISPLAY FUNCTION
+             * 
+             * Renders a professional medical health card with:
+             * - Unique 16-digit Health ID
+             * - Patient personal and medical information
+             * - Issue date (DD/MM/YYYY format)
+             * - Renewal date (DD/MM/YYYY format after 10 years)
+             * - QR code for verification
+             * 
+             * Source Code Explanation:
+             * 1. Extract and format all patient data
+             * 2. Calculate validity period (10 years)
+             * 3. Create professional card layout with sections
+             * 4. Display prominently with blue medical branding
+             */
+            
+            // Format temperature display (shows unit or "Not recorded")
+            const tempDisplay = patient.temperature 
+                ? `${patient.temperature}°${patient.tempUnit || 'C'}` 
+                : 'Not recorded';
+            
+            // Extract date components for display
+            const issuedDate = new Date(patient.issuedOn);
+            const renewalDate = new Date(patient.nextRevealOn);
+            
+            // Build professional health card HTML
+            document.getElementById('idInfo').innerHTML = `
+                <!-- CARD HEADER -->
+                <h3>🏥 MediLink Health Card</h3>
+                
+                <!-- PERSONAL INFORMATION SECTION -->
+                <div class="card-section">
+                    <p><strong>👤 Name:</strong> ${patient.name}</p>
+                    <p><strong>📅 Age:</strong> ${patient.age} years</p>
+                    <p><strong>⚥ Gender:</strong> ${patient.gender}</p>
+                </div>
+                
+                <!-- CONTACT INFORMATION SECTION -->
+                <div class="card-section">
+                    <p><strong>📱 Mobile:</strong> ${patient.fullMobile}</p>
+                    <p><strong>📧 Email:</strong> ${patient.email}</p>
+                </div>
+                
+                <!-- MEDICAL INFORMATION SECTION -->
+                <div class="card-section">
+                    <p><strong>🩸 Blood Group:</strong> ${patient.blood}</p>
+                    <p><strong>🌡️ Fever Status:</strong> ${patient.fever || 'None'}</p>
+                    <p><strong>🌡️ Temperature:</strong> ${tempDisplay}</p>
+                </div>
+                
+                <!-- HEALTH HISTORY SECTION -->
+                <div class="card-section">
+                    <p><strong>⚠️ Allergies:</strong> ${patient.allergies || 'None'}</p>
+                    <p><strong>💊 Vaccinations:</strong> ${patient.vaccinations || 'None'}</p>
+                    <p><strong>🧬 Genetic History:</strong> ${patient.genetic || 'None'}</p>
+                    <p><strong>🏥 Disease Management:</strong> ${patient.disease || 'None'}</p>
+                </div>
+                
+                <!-- UNIQUE 16-DIGIT HEALTH ID - MAIN IDENTIFIER -->
+                <div class="health-id-display">
+                    <span class="label">🆔 Your Unique Health ID</span>
+                    <div class="id-value">${patient.healthId}</div>
+                    <small style="font-size: 11px; margin-top: 8px; display: block; opacity: 0.9;">
+                        16-Digit Permanent Medical Identifier
+                    </small>
+                </div>
+                
+                <!-- CARD VALIDITY PERIOD (10 YEARS) -->
+                <div class="validity-section">
+                    <p style="margin: 0 0 10px 0;">
+                        <strong>📅 Issued On:</strong> ${formatDate(patient.issuedOn)}
+                    </p>
+                    <p style="margin: 0;">
+                        <strong>🔄 Renewal Date:</strong> ${formatDate(patient.nextRevealOn)}
+                    </p>
+                    <small style="color: #666; margin-top: 8px; display: block;">
+                        ✅ Card is valid for 10 years from issue date
+                    </small>
+                </div>
+            `;
+            
+            // Generate QR Code containing Health ID + Token
+            // QR code data structure for scanning/verification
+            const qrData = {
+                healthId: patient.healthId,      // 16-digit unique ID
+                qrToken: patient.qrToken,        // Security token
+                issuedOn: formatDate(patient.issuedOn),      // Issue date
+                renewalOn: formatDate(patient.nextRevealOn), // Renewal date
+                patientName: patient.name
+            };
+            
+            // Clear any existing QR code
+            document.getElementById('qrcode').innerHTML = '';
+            
+            // Generate new QR code with health card data
+            // QR code encodes: Health ID + Token (for verification systems)
+            new QRCode(document.getElementById('qrcode'), {
+                text: JSON.stringify(qrData),  // Encode all card data in QR
+                width: 200,                     // Size: 200x200 pixels (scannable)
+                height: 200,
+                colorDark: '#1976d2',           // Blue QR (medical branding)
+                colorLight: '#ffffff',          // White background
+                errorCorrectionLevel: 'H'       // High error correction
+            });
+            
+            // Make the card visible
+            document.getElementById('idCard').style.display = 'flex';
+            
+            // Log card generation to console
+            console.log('✅ Health Card Generated:', {
+                healthId: patient.healthId,
+                issuedOn: formatDate(patient.issuedOn),
+                renewalOn: formatDate(patient.nextRevealOn),
+                validityYears: 10
+            });
+        }
+        const SMS_CONFIG = {
+            // Twilio Configuration
+            twilio: {
+                accountSid: 'YOUR_TWILIO_ACCOUNT_SID',
+                authToken: 'YOUR_TWILIO_AUTH_TOKEN',
+                fromNumber: 'YOUR_TWILIO_PHONE_NUMBER' // e.g., '+1234567890'
+            },
+            // MSG91 Configuration (Popular in India)
+            msg91: {
+                apiKey: 'YOUR_MSG91_API_KEY',
+                senderId: 'YOUR_SENDER_ID', // 6 characters max
+                route: '4', // 4 for transactional, 1 for promotional
+                country: '91' // Country code without +
+            },
+            // Nexmo/Vonage Configuration
+            vonage: {
+                apiKey: 'YOUR_VONAGE_API_KEY',
+                apiSecret: 'YOUR_VONAGE_API_SECRET',
+                fromNumber: 'YOUR_VONAGE_PHONE_NUMBER' // e.g., 'Vonage'
+            },
+            // Active provider: 'twilio', 'msg91', or 'vonage'
+            activeProvider: 'msg91' // Change this to switch providers
+        };
+        async function sendSmsViaTwilio(phoneNumber, message) {
+            try {
+                const fullNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+                const response = await fetch('https://api.twilio.com/2010-04-01/Accounts/' + SMS_CONFIG.twilio.accountSid + '/Messages.json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + btoa(SMS_CONFIG.twilio.accountSid + ':' + SMS_CONFIG.twilio.authToken)
+                    },
+                    body: new URLSearchParams({
+                        'From': SMS_CONFIG.twilio.fromNumber,
+                        'To': fullNumber,
+                        'Body': message
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    console.log('Twilio SMS sent successfully:', data.sid);
+                    return { success: true, messageId: data.sid };
+                } else {
+                    console.error('Twilio SMS error:', data.message);
+                    return { success: false, error: data.message };
+                }
+            } catch (error) {
+                console.error('Twilio SMS exception:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        async function sendSmsViaVonage(phoneNumber, message) {
+            try {
+                const fullNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+                const authString = btoa(SMS_CONFIG.vonage.apiKey + ':' + SMS_CONFIG.vonage.apiSecret);
+                
+                const response = await fetch('https://rest.nexmo.com/sms/json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'api_key': SMS_CONFIG.vonage.apiKey,
+                        'api_secret': SMS_CONFIG.vonage.apiSecret,
+                        'from': SMS_CONFIG.vonage.fromNumber,
+                        'to': fullNumber,
+                        'text': message
+                    })
+                });
+
+                const data = await response.json();
+                if (data.messages && data.messages[0].status === '0') {
+                    console.log('Vonage SMS sent successfully:', data.messages[0]['message-id']);
+                    return { success: true, messageId: data.messages[0]['message-id'] };
+                } else {
+                    console.error('Vonage SMS error:', data.messages[0]['error-text']);
+                    return { success: false, error: data.messages[0]['error-text'] };
+                }
+            } catch (error) {
+                console.error('Vonage SMS exception:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        /**
+         * Universal SMS sending function that routes to the active provider
+         */
+        async function sendSms(phoneNumber, message) {
+            // In a real application, you would call the actual API
+            // For demo purposes, we'll simulate the API call
+            console.log(`[SMS Gateway] Sending SMS to ${phoneNumber} via ${SMS_CONFIG.activeProvider}`);
+            console.log(`[SMS Gateway] Message: ${message}`);
+
+            // Uncomment the appropriate function based on your provider:
+            switch (SMS_CONFIG.activeProvider) {
+                case 'twilio':
+                    // return await sendSmsViaTwilio(phoneNumber, message);
+                    break;
+                case 'msg91':
+                    // return await sendSmsViaMsg91(phoneNumber, message);
+                    break;
+                case 'vonage':
+                    // return await sendSmsViaVonage(phoneNumber, message);
+                    break;
+            }
+
+            // For demo: simulate successful send
+            return { success: true, messageId: 'DEMO-' + Date.now() };
+        }
+
+        // =====================================================
+        // PATIENT MODULE: REGISTRATION & OTP FLOW
+        // =====================================================
+        // Step 1: User completes registration form
+        // Step 2: OTP is sent to registered mobile number
+        // Step 3: User enters OTP for verification
+        // Step 4: Health card generated with unique ID & QR code
+        // =====================================================
+        
+        document.getElementById('registrationForm').onsubmit = async function(e) {
+            e.preventDefault();
+            
+            // STEP 1: COLLECT PATIENT REGISTRATION DATA
+            // Extract form fields into patient object for server storage
+            const issuedOn = new Date();
+            const nextRevealOn = new Date(issuedOn);
+            nextRevealOn.setFullYear(nextRevealOn.getFullYear() + 10); // Health card valid for 10 years
+
+            const countryCode = document.getElementById('countryCode').value;
+            const mobile = document.getElementById('mobile').value;
+            const fullMobileNumber = `${countryCode} ${mobile}`; // e.g., "+91 9876543210"
+
+            // Patient object containing all health and personal information
+            const patient = {
+                name: document.getElementById('name').value,
+                age: document.getElementById('age').value,
+                gender: document.getElementById('gender').value,
+                countryCode: countryCode, // Country code for international support
+                mobile: mobile, // 10-digit mobile without country code
+                fullMobile: fullMobileNumber, // Full mobile with country code for OTP destination
+                email: document.getElementById('email').value,
+                blood: document.getElementById('blood').value,
+                allergies: document.getElementById('allergies').value,
+                vaccinations: document.getElementById('vaccinations').value,
+                genetic: document.getElementById('genetic').value,
+                disease: document.getElementById('disease').value,
+                fever: document.getElementById('fever').value,
+                temperature: document.getElementById('temperature').value || null,
+                tempUnit: document.getElementById('tempUnit').value,
+                requestToken: generateQrToken() // Temporary token for initial QR code
+            };
+
+            currentPatient = patient; // Store in global for OTP verification step
+            savePatient(patient); // Save to localStorage for offline access
+            
+            // STEP 2: SHOW OTP VERIFICATION UI
+            // Hide previous card and show OTP input section
+            document.getElementById('idCard').style.display = 'none';
+            // Clear OTP input safely (may be named otpInputMobile in the DOM)
+            const otpEl = document.getElementById('otpInputMobile') || document.getElementById('otpInput');
+            if (otpEl) otpEl.value = '';
+            document.getElementById('otpSection').style.display = 'block';
+            document.getElementById('otpInstructions').textContent =
+                `📱 OTP sent to ${fullMobileNumber}. Enter the 6-digit code below to verify and generate your Health ID card.`;
+
+            // STEP 2A: CALL BACKEND OTP SERVER
+            // POST request to Flask OTP server to generate and send OTP via SMS
+            // Endpoint: POST http://localhost:5000/send_otp
+            // Body: { mobile: "+91 9876543210" }
+            // Response: { success: true, details: { mobile: { sent: true, info: "..." } } }
+            try {
+                const resp = await fetch('http://localhost:5000/send_otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile: fullMobileNumber }) // Send OTP to this mobile
+                });
+                const data = await resp.json();
+                if (!data.success) {
+                    console.warn('OTP server responded with error', data);
+                    alert('Failed to send OTP — see console for details.');
+                } else {
+                    console.log('✅ OTP sent successfully:', data.details || data);
+                }
+            } catch (err) {
+                console.error('Error calling OTP server:', err);
+                alert('❌ Could not contact OTP server. Ensure Flask server running at http://localhost:5000');
+            }
+
+            // STEP 2B: GENERATE REQUEST QR CODE (temporary, for reference)
+            // This QR encodes the temporary request token before health card is issued
+            // User can scan this to see registration request details
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById('qrcode'), {
+                text: JSON.stringify({
+                    requestToken: patient.requestToken, // Temporary token
+                    mobile: fullMobileNumber,
+                    email: patient.email,
+                    status: 'pending_otp_verification' // Indicates awaiting OTP
+                }),
+                width: 100,
+                height: 100
+            });
+        };
+
+        // =====================================================
+        // STEP 3: OTP VERIFICATION & HEALTH CARD GENERATION
+        // =====================================================
+        // When user clicks "Verify Mobile OTP & Show Health Card" button
+        // 1. Verify OTP with backend (read-only check)
+        // 2. Register patient and mark OTP as consumed
+        // 3. Generate unique Health ID + QR code
+        // 4. Display final health card
+        // =====================================================
+        
+        document.getElementById('verifyOtpBtn').onclick = async function() {
+            // Get OTP entered by user from input field
+            const enteredMobileOtp = document.getElementById('otpInputMobile').value.trim();
+            
+            // Validate that registration form was submitted
+            if (!currentPatient) {
+                alert('❌ No pending registration to verify. Please complete the registration form first.');
+                return;
+            }
+            
+            // Validate OTP input is not empty
+            if (!enteredMobileOtp) {
+                alert('⚠️ Please enter the mobile OTP.');
+                return;
+            }
+
+            try {
+                // STEP 3A: PRE-VERIFICATION (Optional read-only check)
+                // Verify OTP format and expiry without consuming it
+                // Endpoint: POST http://localhost:5000/verify_otp
+                // Body: { destination: "+91 9876543210", otp: "123456" }
+                // Response: { success: true } or { success: false, error: "Incorrect or expired" }
+                const mobileDest = `${currentPatient.countryCode} ${currentPatient.mobile}`;
+                const verifyResp = await fetch('http://localhost:5000/verify_otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        destination: mobileDest, // Mobile destination of OTP
+                        otp: enteredMobileOtp    // User-entered OTP code
+                    })
+                });
+                const verifyData = await verifyResp.json();
+                
+                // Check if OTP verification failed
+                if (!verifyData.success) {
+                    alert('❌ Mobile OTP verification failed: ' + (verifyData.error || 'Incorrect or expired OTP'));
+                    console.error('OTP verification error:', verifyData.error);
+                    return;
+                }
+                
+                console.log('✅ OTP verified successfully');
+
+                // STEP 3B: REGISTER PATIENT & GENERATE HEALTH CARD
+                // Once OTP is verified, call register_patient endpoint
+                // This endpoint:
+                //   - Validates and marks OTP as consumed (prevents reuse)
+                //   - Generates unique 16-digit Health ID
+                //   - Creates QR token for card authenticity
+                //   - Stores patient in database
+                //   - Returns issued card details
+                // Endpoint: POST http://localhost:5000/register_patient
+                // Body: { patient: {...}, mobileOtp: "123456" }
+                // Response: { success: true, card: { healthId, qrToken, issuedOn, renewalOn } }
+                const resp = await fetch('http://localhost:5000/register_patient', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        patient: currentPatient,      // Full patient data
+                        mobileOtp: enteredMobileOtp   // OTP for consumption
+                    })
+                });
+                const data = await resp.json();
+                
+                // Check if registration failed
+                if (!data.success) {
+                    alert('❌ Registration failed: ' + (data.error || 'Unknown error'));
+                    console.error('Registration error:', data.error);
+                    return;
+                }
+
+                console.log('✅ Patient registered successfully');
+
+                // STEP 3C: BUILD FINAL HEALTH CARD OBJECT
+                // Combine server-issued card data with patient info for display
+                const card = data.card; // Server response: { healthId, qrToken, issuedOn, renewalOn, name, email, mobile }
+                
+                // Create final patient object with server-generated identifiers
+                const registeredPatient = {
+                    // Personal details (unchanged from registration)
+                    name: currentPatient.name,
+                    age: currentPatient.age,
+                    gender: currentPatient.gender,
+                    countryCode: currentPatient.countryCode,
+                    mobile: currentPatient.mobile,
+                    fullMobile: currentPatient.fullMobile,
+                    email: currentPatient.email,
+                    
+                    // Medical information (unchanged from registration)
+                    blood: currentPatient.blood,
+                    allergies: currentPatient.allergies,
+                    vaccinations: currentPatient.vaccinations,
+                    genetic: currentPatient.genetic,
+                    disease: currentPatient.disease,
+                    fever: currentPatient.fever,
+                    temperature: currentPatient.temperature,
+                    tempUnit: currentPatient.tempUnit,
+                    
+                    // Server-issued card identifiers
+                    healthId: card.healthId,           // Unique 16-digit Health ID (e.g., "1234567890123456")
+                    qrToken: card.qrToken,             // QR authentication token
+                    issuedOn: new Date(card.issuedOn * 1000).toISOString(),   // Server timestamp → ISO format
+                    nextRevealOn: new Date(card.renewalOn * 1000).toISOString() // Renewal date (10 years)
+                };
+
+                // Update current patient and persist to localStorage
+                currentPatient = registeredPatient;
+                savePatient(currentPatient);
+
+                // STEP 3D: GENERATE FINAL HEALTH CARD QR CODE
+                // QR code now contains official Health ID + QR token (not temporary request token)
+                // User can scan this QR to verify their health card
+                document.getElementById('qrcode').innerHTML = ''; // Clear old QR
+                new QRCode(document.getElementById('qrcode'), {
+                    text: JSON.stringify({ 
+                        healthId: currentPatient.healthId,   // Unique 16-digit ID
+                        qrToken: currentPatient.qrToken,     // Authentication token
+                        issuedOn: currentPatient.issuedOn,   // Issue date
+                        renewalOn: currentPatient.nextRevealOn // Renewal date
+                    }),
+                    width: 150,  // Larger QR for final card
+                    height: 150,
+                    colorDark: '#1976d2', // Blue QR for branding
+                    colorLight: '#ffffff'
+                });
+
+                // STEP 3E: DISPLAY HEALTH CARD
+                // Show the generated health card with all details
+                showHealthCard(currentPatient);
+                
+                // Hide OTP section after successful registration
+                document.getElementById('otpSection').style.display = 'none';
+                
+                // Success notification
+                alert('🎉 Registration complete! Your Health ID card has been issued.\n\nHealth ID: ' + currentPatient.healthId);
+                console.log('✅ Health card generated successfully for:', currentPatient.name);
+                
+            } catch (err) {
+                console.error('Error during OTP verification or registration:', err);
+                alert('❌ Error processing registration — ensure Flask OTP server is running at http://localhost:5000');
+            }
+        };
+
+        // Doctor Module Functions
+        document.getElementById('doctorRegistrationForm').onsubmit = function(e) {
+            e.preventDefault();
+            const doctor = {
+                doctorId: generateDoctorId(),
+                name: document.getElementById('doctorName').value,
+                license: document.getElementById('doctorLicense').value,
+                specialization: document.getElementById('doctorSpecialization').value,
+                experience: document.getElementById('doctorExperience').value,
+                mobile: document.getElementById('doctorMobile').value,
+                email: document.getElementById('doctorEmail').value,
+                hospital: document.getElementById('doctorHospital').value,
+                status: 'pending',
+                registeredOn: new Date().toISOString()
+            };
+
+            saveDoctor(doctor);
+            alert(`Doctor registration submitted! Your Doctor ID: ${doctor.doctorId}\nStatus: Pending Admin Approval`);
+            document.getElementById('doctorRegistrationForm').reset();
+        };
+
+        function doctorLogin() {
+            const loginId = document.getElementById('doctorLoginId').value.trim();
+            if (!loginId) {
+                alert('Please enter your email or license number');
+                return;
+            }
+
+            const doctors = getDoctors();
+            const doctor = doctors.find(d => 
+                (d.email === loginId || d.license === loginId) && d.status === 'approved'
+            );
+
+            if (doctor) {
+                currentDoctor = doctor;
+                document.getElementById('doctorRegistrationSection').style.display = 'none';
+                document.getElementById('patientRecordsSection').style.display = 'block';
+                document.getElementById('doctorLoginSection').style.display = 'none';
+                alert(`Welcome Dr. ${doctor.name}! You can now access patient records.`);
+                searchPatients();
+            } else {
+                alert('Doctor not found or account not approved. Please wait for admin approval.');
+            }
+        }
+
+        function loadDoctorRecords() {
+            document.getElementById('doctorRegistrationSection').style.display = 'block';
+            document.getElementById('patientRecordsSection').style.display = 'none';
+            document.getElementById('doctorLoginSection').style.display = 'block';
+            currentDoctor = null;
+        }
+
+        function searchPatients() {
+            const searchTerm = document.getElementById('patientSearch').value.toLowerCase();
+            const patients = getPatients();
+            const results = patients.filter(p => 
+                p.healthId.toLowerCase().includes(searchTerm) ||
+                p.name.toLowerCase().includes(searchTerm) ||
+                p.mobile.includes(searchTerm)
+            );
+
+            const resultsDiv = document.getElementById('patientRecordsResults');
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<p>No patient records found.</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = results.map(patient => {
+                const tempDisplay = patient.temperature ? `${patient.temperature}°${patient.tempUnit || 'C'}` : 'Not recorded';
+                const mobileDisplay = patient.fullMobile || (patient.countryCode ? `${patient.countryCode} ${patient.mobile}` : patient.mobile);
+                return `
+                <div class="patient-record">
+                    <h4>${patient.name} - Health ID: ${patient.healthId}</h4>
+                    <p><strong>Age:</strong> ${patient.age} | <strong>Gender:</strong> ${patient.gender}</p>
+                    <p><strong>Mobile:</strong> ${mobileDisplay} | <strong>Email:</strong> ${patient.email}</p>
+                    <p><strong>Blood Group:</strong> ${patient.blood}</p>
+                    <p><strong>Fever Status:</strong> ${patient.fever || 'None'} | <strong>Temperature:</strong> ${tempDisplay}</p>
+                    <p><strong>Allergies:</strong> ${patient.allergies || 'None'}</p>
+                    <p><strong>Vaccinations:</strong> ${patient.vaccinations || 'None'}</p>
+                    <p><strong>Genetic History:</strong> ${patient.genetic || 'None'}</p>
+                    <p><strong>Disease Management:</strong> ${patient.disease || 'None'}</p>
+                    <p><strong>Issued On:</strong> ${formatDate(patient.issuedOn)} | <strong>Renewal Date:</strong> ${formatDate(patient.nextRevealOn)}</p>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Admin Module Functions
+        function adminLogin() {
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                localStorage.setItem('adminLoggedIn', 'true');
+                document.getElementById('adminLoginSection').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                refreshSystemStats();
+                loadDoctorsForApproval();
+                loadUsersForManagement();
+                alert('Admin login successful!');
+            } else {
+                alert('Invalid admin credentials!');
+            }
+        }
+
+        function refreshSystemStats() {
+            const patients = getPatients();
+            const doctors = getDoctors();
+            const pendingDoctors = doctors.filter(d => d.status === 'pending').length;
+            const approvedDoctors = doctors.filter(d => d.status === 'approved').length;
+
+            document.getElementById('statTotalPatients').textContent = patients.length;
+            document.getElementById('statTotalDoctors').textContent = doctors.length;
+            document.getElementById('statPendingDoctors').textContent = pendingDoctors;
+            document.getElementById('statApprovedDoctors').textContent = approvedDoctors;
+        }
+
+        function loadDoctorsForApproval() {
+            const doctors = getDoctors();
+            const doctorsDiv = document.getElementById('doctorsList');
+
+            if (doctors.length === 0) {
+                doctorsDiv.innerHTML = '<p>No doctor registrations found.</p>';
+                return;
+            }
+
+            doctorsDiv.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Doctor ID</th>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>License</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${doctors.map(doctor => `
+                            <tr>
+                                <td>${doctor.doctorId}</td>
+                                <td>Dr. ${doctor.name}</td>
+                                <td>${doctor.specialization}</td>
+                                <td>${doctor.license}</td>
+                                <td>${doctor.email}</td>
+                                <td>
+                                    <span class="status-badge status-${doctor.status}">${doctor.status.toUpperCase()}</span>
+                                </td>
+                                <td>
+                                    ${doctor.status === 'pending' ? `
+                                        <button class="secondary" onclick="approveDoctor('${doctor.doctorId}')">Approve</button>
+                                        <button class="danger" onclick="rejectDoctor('${doctor.doctorId}')">Reject</button>
+                                    ` : doctor.status === 'approved' ? 
+                                        '<span style="color: green;">Approved</span>' : 
+                                        '<span style="color: red;">Rejected</span>'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function approveDoctor(doctorId) {
+            updateDoctor(doctorId, { status: 'approved' });
+            alert('Doctor account approved!');
+            loadDoctorsForApproval();
+            refreshSystemStats();
+        }
+
+        function rejectDoctor(doctorId) {
+            updateDoctor(doctorId, { status: 'rejected' });
+            alert('Doctor account rejected!');
+            loadDoctorsForApproval();
+            refreshSystemStats();
+        }
+
+        function loadUsersForManagement() {
+            const patients = getPatients();
+            const doctors = getDoctors();
+            searchUsers();
+        }
+
+        function searchUsers() {
+            const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
+            const patients = getPatients();
+            const doctors = getDoctors();
+
+            let allUsers = [
+                ...patients.map(p => ({ ...p, type: 'Patient', id: p.healthId })),
+                ...doctors.map(d => ({ ...d, type: 'Doctor', id: d.doctorId }))
+            ];
+
+            if (searchTerm) {
+                allUsers = allUsers.filter(u => 
+                    u.name.toLowerCase().includes(searchTerm) ||
+                    u.id.toLowerCase().includes(searchTerm) ||
+                    (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+                    (u.mobile && u.mobile.includes(searchTerm))
+                );
+            }
+
+            const usersDiv = document.getElementById('usersList');
+            if (allUsers.length === 0) {
+                usersDiv.innerHTML = '<p>No users found.</p>';
+                return;
+            }
+
+            usersDiv.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Registered On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allUsers.map(user => `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${user.type === 'Doctor' ? 'Dr. ' : ''}${user.name}</td>
+                                <td>${user.type}</td>
+                                <td>${user.email || 'N/A'}</td>
+                                <td>${user.mobile || 'N/A'}</td>
+                                <td>${formatDate(user.issuedOn || user.registeredOn)}</td>
+                                <td>
+                                    ${user.type === 'Patient' ? 
+                                        `<button class="warning" onclick="viewPatientDetails('${user.healthId}')">View Details</button>` :
+                                        `<span class="status-badge status-${user.status}">${user.status?.toUpperCase() || 'N/A'}</span>`
+                                    }
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function viewPatientDetails(healthId) {
+            const patients = getPatients();
+            const patient = patients.find(p => p.healthId === healthId);
+            if (patient) {
+                const tempDisplay = patient.temperature ? `${patient.temperature}°${patient.tempUnit || 'C'}` : 'Not recorded';
+                const mobileDisplay = patient.fullMobile || (patient.countryCode ? `${patient.countryCode} ${patient.mobile}` : patient.mobile);
+                alert(`Patient Details:\n\nName: ${patient.name}\nAge: ${patient.age}\nGender: ${patient.gender}\nMobile: ${mobileDisplay}\nBlood Group: ${patient.blood}\nFever Status: ${patient.fever || 'None'}\nTemperature: ${tempDisplay}\nAllergies: ${patient.allergies || 'None'}\nVaccinations: ${patient.vaccinations || 'None'}\nGenetic History: ${patient.genetic || 'None'}\nDisease Management: ${patient.disease || 'None'}`);
+            }
+        }
+
+        // Check if admin is already logged in
+        if (localStorage.getItem('adminLoggedIn') === 'true') {
+            document.getElementById('adminLoginSection').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            refreshSystemStats();
+            loadDoctorsForApproval();
+            loadUsersForManagement();
+        }
+    </script>
+</body>
+</html>
